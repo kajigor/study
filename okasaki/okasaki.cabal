@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: bc4e2bc7808b1ee62fba8746aaaf3327745f7f88930da2588208522b9dae977d
+-- hash: cc28cecc49fdd948258cf031e5c9ed86730d0473fc5c765dd8dbcc096ce8990a
 
 name:           okasaki
 version:        0.1.0.0
@@ -33,6 +33,7 @@ library
       Chapter2.Ex_2_4
       Chapter2.Ex_2_5
       Chapter2.Ex_2_6
+      Chapter3.Heap
       Lib
   other-modules:
       Paths_okasaki
@@ -64,6 +65,8 @@ test-suite okasaki-test
       Test.Chapter2.Ex_2_4
       Test.Chapter2.Ex_2_5
       Test.Chapter2.Ex_2_6
+      Test.Chapter3.Heap
+      Test.Chapter3.HeapProperty
       Paths_okasaki
   hs-source-dirs:
       test
