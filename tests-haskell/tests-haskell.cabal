@@ -1,0 +1,52 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.34.4.
+--
+-- see: https://github.com/sol/hpack
+
+name:           tests-haskell
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/kajigor/tests-haskell#readme>
+homepage:       https://github.com/kajigor/tests-haskell#readme
+bug-reports:    https://github.com/kajigor/tests-haskell/issues
+author:         Ekaterina Verbitskaia
+maintainer:     kajigor@gmail.com
+copyright:      Ekaterina Verbitskaia
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/kajigor/tests-haskell
+
+library
+  exposed-modules:
+      Lib
+  other-modules:
+      Paths_tests_haskell
+  hs-source-dirs:
+      src
+  build-depends:
+      base >=4.7 && <5
+  default-language: Haskell2010
+
+test-suite tests-haskell-test
+  type: exitcode-stdio-1.0
+  main-is: Test.hs
+  other-modules:
+      Test.Timeout
+      Paths_tests_haskell
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , tasty
+    , tasty-discover
+    , tasty-hunit
+    , tests-haskell
+  default-language: Haskell2010
