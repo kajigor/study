@@ -1,0 +1,17 @@
+{
+  "scopeName": "source.abc",
+  "patterns": [{ "include": "#expression" }],
+  "repository": {
+    "expression": {
+      "patterns": [{ "include": "#kw" }, { "include": "#constructor" }]
+    },
+    "kw": {
+      "match": "\\b(fresh|in|import)\\b",
+      "name": "keyword.control"
+    },
+    "constructor": {
+      "match": "\\b([A-Z][_0-9A-Za-z]*)\\b",
+      "name": "constant.character"
+    }
+  }
+}
