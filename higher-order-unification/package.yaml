@@ -1,0 +1,49 @@
+name:                higher-order-unification
+version:             0.1.0.0
+github:              "kajigor/higher-order-unification"
+license:             BSD3
+author:              "Ekaterina Verbitskaia"
+maintainer:          "kajigor@gmail.com"
+copyright:           "Ekaterina Verbitskaia"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/kajigor/higher-order-unification#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+- containers
+
+library:
+  source-dirs: src
+
+executables:
+  higher-order-unification-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - higher-order-unification
+
+tests:
+  higher-order-unification-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - higher-order-unification
