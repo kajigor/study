@@ -1,0 +1,13 @@
+module(1, "hello.m",
+	hello,
+	{},
+	{builtin, io, private_builtin},
+	{builtin, io, private_builtin},
+	{},
+	{},
+	{},
+	{},
+	{},
+	no_foreign_export,
+	has_main
+).
