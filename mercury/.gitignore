@@ -1,0 +1,7 @@
+*.err 
+*.mh 
+Mercury/
+fib/fib
+hello/hello
+cryptarithms/crypt
+prop/prop
