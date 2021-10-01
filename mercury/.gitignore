@@ -1,7 +1,11 @@
 *.err 
 *.mh 
+*.swp
 Mercury/
 fib/fib
 hello/hello
 cryptarithms/crypt
 prop/prop
+sorting/sorting
+list/myList
+doWhile/do_while
