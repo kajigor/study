@@ -16,6 +16,12 @@
 minMax(X, Y, Min, Max) :-
   X < Y, Min = X, Max = Y ;
   X >= Y, Max = X, Min = Y.
+  % (
+  %   if X < Y
+  %   then Min = X, Max = Y
+  %   else Min = Y, Max = X
+  % ).
+
   % Min = min(X, Y),
   % Max = max(X, Y).
 
@@ -39,26 +45,35 @@ smallestHelper(Xs, Result) :-
 
 :- pred sorto(list(int), list(int)).
 :- mode sorto(in, out) is nondet.
-% :- mode sorto(out, in) is nondet.
+:- mode sorto(out, in) is nondet.
 sorto([], []).
 sorto(Xs, Sorted) :-
   Sorted = [Min | SortedRest],
   smallest(Xs, Min, Rest),
   sorto(Rest, SortedRest).
 
-:- pred sorto1(list(int), list(int)).
-:- mode sorto1(out, in) is nondet.
-sorto1([], []).
-sorto1(Xs, Sorted) :-
-  Sorted = [Min | SortedRest],
-  smallest(Xs, Min, Rest),
-  sorto1(Rest, SortedRest).
+:- pred sortoOutIn(list(int), list(int)).
+:- mode sortoOutIn(out, in) is nondet.
+sortoOutIn(Xs, Sorted) :- sorto(Xs, Sorted).
+
+:- pred sortoInOut(list(int), list(int)).
+:- mode sortoInOut(in, out) is nondet.
+sortoInOut(Xs, Sorted) :- sorto(Xs, Sorted).
+
+% :- pred sorto1(list(int), list(int)).
+% :- mode sorto1(out, in) is nondet.
+% sorto1([], []).
+% sorto1(Xs, Sorted) :-
+%   Sorted = [Min | SortedRest],
+%   smallest(Xs, Min, Rest),
+%   sorto1(Rest, SortedRest).
 
 :- pred permutations(list(int), list(int)).
 :- mode permutations(in, out) is nondet.
 permutations(Xs, Perm) :-
   sorto(Xs, Sorted),
-  sorto1(Perm, Sorted). %% Otherwise modes fail to infer correctly.
+  sorto(Perm, Sorted).
+  % sorto1(Perm, Sorted). %% Otherwise modes fail to infer correctly.
 
 main(!IO) :-
   % printMinMax(1, 2, !IO),
@@ -116,7 +131,7 @@ printEachList(Name, [H|T], !IO) :-
 :- pred printSorted(list(int)::in, io::di, io::uo) is det.
 printSorted(Xs, !IO) :-
   io.format("\nList:\t%s\n", [s(listToString(Xs))], !IO),
-  solutions(sorto(Xs), AllSolutions),
+  solutions(sortoInOut(Xs), AllSolutions),
   printEachList("Sorted", AllSolutions, !IO).
 
 :- pred printPerms(list(int)::in, io::di, io::uo) is det.
