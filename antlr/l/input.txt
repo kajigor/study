@@ -1,0 +1,12 @@
+x := 13; 
+read (v);
+if (v == 13) {
+  write (v + x); 
+}
+else 
+{
+  while (v) {
+    v := v + 1;
+  }
+  write (v);
+} 
