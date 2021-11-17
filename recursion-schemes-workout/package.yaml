@@ -1,0 +1,39 @@
+name:                recursion-schemes-workout
+version:             0.1.0.0
+github:              "kajigor/recursion-schemes-workout"
+license:             BSD3
+author:              "Ekaterina Verbitskaia"
+maintainer:          "kajigor@gmail.com"
+copyright:           "Ekaterina Verbitskaia"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/kajigor/recursion-schemes-workout#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+- reducers
+- reflection
+
+library:
+  source-dirs: src
+
+tests:
+  recursion-schemes-workout-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - recursion-schemes-workout
