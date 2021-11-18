@@ -69,4 +69,4 @@ parseStmt =
   <|> parseAssign
 
 parseL :: Parser L
-parseL = sepBy1 parseStmt colon
+parseL = sepBy1 parseStmt colon <* eof

@@ -40,7 +40,7 @@ identifier =
     p = (:) <$> letterChar <*> many identLetters
 
 number :: Parser Int
-number = read <$> some digitChar
+number = read <$> L.lexeme sc (some digitChar)
 
 colon :: Parser String
 colon = symbol ";"
