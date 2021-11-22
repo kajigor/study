@@ -1,118 +1,130 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module GenExt where
 
 import L
 import Control.Monad.Trans.State
-import Control.Monad.Trans.Class
+import Control.Monad.Trans.Class ()
 import Text.Printf (printf)
+import Data.Text (Text)
+import Prettyprinter
+import Parser.Parser (parser)
+import Prettyprinter.Render.Text
+import Data.Text.IO
 
-type HS = String
+type HS = Doc Text
 
 preamble :: HS
-preamble =
-  "{-# LANGUAGE ScopedTypeVariables #-}\n\
-  \module Output where\n\n\
-  \import Control.Monad.Trans.State\n\
-  \import Control.Monad.Trans.Class\n\n\
-  \"
+preamble = vsep
+  [ "{-# LANGUAGE ScopedTypeVariables #-}"
+  , "module Output where"
+  , ""
+  , "import Control.Monad.Trans.State"
+  , "import Control.Monad.Trans.Class"
+  , ""
+  ]
 
--- mainDef :: HS -> HS
--- mainDef =
---   printf
---     "main :: IO ()\n\
---     \main = do \n\
---     \  let res = evalStateT (%s) ([(\"x\", 5)])\n\
---     \  print $ case res of\n\
---     \    Just output -> Just $ output\n\
---     \    Nothing -> Nothing\n\
---     \"
-
--- evalLGE :: Expr -> HS
--- evalLGE e =
---   printf "%s%s" preamble (mainDef $ evalExprGE e)
-
+tabsize :: Int
+tabsize = 2
 
 mainDef :: HS -> HS
-mainDef =
-  printf
-    "main :: IO ()\n\
-    \main = do \n\
-    \  let compiled = %s\n\
-    \  let res = execStateT compiled ([(\"x\", 5)], [13], [])\n\
-    \  print $ case res of\n\
-    \    Just (_, _, output :: [Int]) -> Just $ output\n\
-    \    Nothing -> Nothing\n\
-    \"
+mainDef compiled =
+  vsep
+    [ "main :: IO ()"
+    , "main = do"
+    , compiled
+    ]
 
-evalLGE :: Stmt -> HS
-evalLGE e =
-  printf "%s%s" preamble (mainDef $ evalStmtGE e)
+evalLGE :: L -> Input -> HS
+evalLGE program input =
+  vsep [preamble, (mainDef $ evalLHelper program input)]
 
 
 evalOpGE :: Op -> HS
 evalOpGE Plus = "(+)"
 evalOpGE Mult = "(*)"
 
+indentOnce :: [Doc ann] -> Doc ann
+indentOnce = indent tabsize . vsep
+
+hangOnce :: [Doc ann] -> Doc ann
+hangOnce = hang tabsize . vsep
+
+indentThrice :: [Doc ann] -> Doc ann
+indentThrice = indent (3 * tabsize) . vsep
+
 evalExprGE :: Expr -> HS
-evalExprGE (Lit x) = printf "(return %s)" (show x)
-evalExprGE (Var v) = printf "do {\
-  \ state <- get; \
-  \ case lookup %s state of {\
-  \   Just x -> return x; \
-  \    Nothing -> lift Nothing}}"
-  (show v)
-evalExprGE (BinOp op l r) = printf "do {\
-  \ l <- (%s); \
-  \ r <- (%s); \
-  \ return (%s l r)}"
-  (evalExprGE l)
-  (evalExprGE r)
-  (evalOpGE op)
+evalExprGE (Lit x) = "return " <> pretty x
+evalExprGE (Var v) =
+  hangOnce [ "do"
+           , "state <- get"
+           , hangOnce [ "case lookup \"" <> pretty v <> "\" state of"
+                      , "Just x -> return x"
+                      , "Nothing -> lift Nothing"
+                      ]
+           ]
+evalExprGE (BinOp op l r) =
+  let lComp = evalExprGE l in
+  let rComp = evalExprGE r in
+  let opComp = evalOpGE op in
+  hangOnce [ "do"
+           , "l <- (" <> lComp <>")"
+           , "r <- (" <> rComp <> ")"
+           , "return (" <> opComp <+> "l r)"
+           ]
 
 evalStmtGE :: Stmt -> HS
-evalStmtGE (Read v) = printf "do {\
-  \(state, x : input, output) <- get; \
-  \put ((%s, x) : state, input, output); \
-  \return ()}\
-  \"
-  (show v)
-evalStmtGE (Write e) = printf "do { \
-  \(state, input, output) <- get; \
-  \let r = evalStateT (%s) state; \
-  \case r of\
-  \  {Just x -> do {\
-  \    put (state, input, x : output); \
-  \    return ()};\
-  \  Nothing ->\
-  \    lift Nothing}}\
-  \"
-  (evalExprGE e)
-evalStmtGE (Assign v e) = printf "(do \
-  \(state, input, output) <- get; \
-  \let r = evalStateT (%s) state; \
-  \case r of{\
-  \  Just x -> do {\
-  \    put ((%s, x) : state, input, output); \
-  \    return ()}; \
-  \  Nothing ->\
-  \    lift Nothing})\
-  \"
-  (evalExprGE e)
-  (show v)
+evalStmtGE (Read v) =
+  hangOnce [ "do"
+           , "(state, x : input, output) <- get"
+           , "put ((\"" <> pretty v <> "\", x) : state, input, output)"
+           , "return ()"
+           ]
+evalStmtGE (Write e) =
+  let eComp = evalExprGE e in
+  hangOnce [ "do"
+           , "(state, input, output) <- get"
+           , "let r = evalStateT (" <> eComp <> ") state"
+           , hangOnce [ "case r of"
+                      , "Just x -> do "
+                      , indentOnce [ "put (state, input, x : output)"
+                                   , "return ()"
+                                   ]
+                      , "Nothing -> lift Nothing"
+                      ]
+           ]
+evalStmtGE (Assign v e) =
+  let eComp = evalExprGE e in
+  hangOnce [ "do"
+           , "(state, input, output) <- get"
+           , "let r = evalStateT (" <> eComp <> ") state"
+           , hangOnce [ "case r of"
+                      , "Just x -> do"
+                      , indentOnce [ "put ((\"" <> pretty v <> "\", x) : state, input, output)"
+                                    , "return ()"
+                                    ]
+                      , "Nothing -> lift Nothing"
+                      ]
+           ]
 
+evalLHelper :: L -> Input -> HS
+evalLHelper program inputs =
+  let compiledStatements = indentThrice $ map (parens . evalStmtGE) program in
+  indentOnce [ "let compiled = do " <> line <> compiledStatements
+             , "let res = execStateT compiled ([]," <+> pretty inputs <> ", [])"
+             , "print $" <+> (hangOnce [ "case res of"
+                                       , "Just (_, _, output :: [Int]) -> Just output"
+                                       , "Nothing -> Nothing"
+                                       ])
+             ]
 
+run :: Input -> String -> Maybe FilePath -> IO ()
+run inputs string path =
+    case parser string of
+      Left err -> fail err
+      Right program ->
+        let fileName = maybe "src/Output.hs" id path in
+        Data.Text.IO.writeFile fileName (renderStrict . layoutPretty layoutOptions $ evalLGE program inputs)
+  where
+    layoutOptions = LayoutOptions { layoutPageWidth = AvailablePerLine 80 1 }
 
--- evalL :: L -> Input -> Maybe Output
--- evalL program inputs =
---   let res = execStateT (mapM evalStmt program) ([], inputs, []) in
---   case res of
---     Just (_, _, output) -> Just $ reverse output
---     Nothing -> Nothing
-
--- run :: Input -> String -> Either String Output
--- run inputs string =
---   case parser string of
---     Left err -> Left err
---     Right program ->
---       case evalL program inputs of
---         Nothing -> Left "failed to evaluate"
---         Just output -> Right output
