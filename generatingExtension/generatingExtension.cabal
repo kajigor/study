@@ -27,6 +27,7 @@ library
   exposed-modules:
       BTA
       Eval
+      GenExt
       L
       Lib
       Parser.Data
