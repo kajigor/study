@@ -26,12 +26,15 @@ dependencies:
 - parser-combinators
 - prettyprinter
 - text
+- optparse-applicative
+- directory
+- filepath
 
 library:
   source-dirs: src
 
 executables:
-  generatingExtension-exe:
+  exe:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
