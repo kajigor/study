@@ -4,11 +4,36 @@ import Parser.Parser (parser)
 import L
 import Control.Monad.Trans.State
 import Control.Monad.Trans.Class
-
+import Control.Monad ( when )
+import Options.Applicative.Help (yellow)
 
 evalOp :: Op -> (Int -> Int -> Int)
-evalOp Plus = (+)
-evalOp Mult = (*)
+evalOp Plus  = (+)
+evalOp Minus = (-)
+evalOp Mult  = (*)
+evalOp Div   = div
+evalOp Pow   = (^)
+evalOp Eq    = transformCompare (==)
+evalOp Neq   = transformCompare (/=)
+evalOp Lt    = transformCompare (<)
+evalOp Le    = transformCompare (<=)
+evalOp Gt    = transformCompare (>)
+evalOp Ge    = transformCompare (>=)
+evalOp And   = transform (&&)
+evalOp Or    = transform (||)
+
+transformCompare :: (Int -> Int -> Bool) -> Int -> Int -> Int
+transformCompare f x y = boolToInt $ f x y
+
+transform :: (Bool -> Bool -> Bool) -> Int -> Int -> Int
+transform f x y = boolToInt $ intToBool x `f` intToBool y
+
+intToBool :: Int -> Bool
+intToBool x = x /= 0
+
+boolToInt :: Bool -> Int
+boolToInt True = 1
+boolToInt False = 0
 
 evalExpr :: Expr -> StateT VarState Maybe Int
 evalExpr (Lit x) = return x
@@ -17,6 +42,14 @@ evalExpr (Var v) = do
   case lookup v state of
     Just x -> return x
     Nothing -> lift Nothing
+evalExpr (BinOp Div l r) = do
+  r <- evalExpr r
+  if r == 0
+  then
+    fail "Division by zero"
+  else do
+    l <- evalExpr l
+    return (evalOp Div l r)
 evalExpr (BinOp op l r) = do
   l <- evalExpr l
   r <- evalExpr r
@@ -45,6 +78,24 @@ evalStmt (Assign v e) = do
       return ()
     Nothing ->
       lift Nothing
+evalStmt (If c thn els) = do
+  (state, _, _) <- get
+  case evalStateT (evalExpr c) state of
+    Just cond ->
+      if intToBool cond
+      then mapM_ evalStmt thn
+      else mapM_ evalStmt els
+    Nothing -> lift Nothing
+evalStmt w@(While c body) = do
+  (state, _, _) <- get
+  case evalStateT (evalExpr c) state of
+    Just cond ->
+      when
+        (intToBool cond)
+        (do
+          mapM_ evalStmt body
+          evalStmt (While c body))
+    Nothing -> lift Nothing
 
 evalL :: L -> Input -> Maybe Output
 evalL program inputs =
