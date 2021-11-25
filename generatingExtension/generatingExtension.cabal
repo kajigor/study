@@ -29,7 +29,6 @@ library
       Eval
       GenExt
       L
-      Output
       Parser.Data
       Parser.Lexer
       Parser.Parser
