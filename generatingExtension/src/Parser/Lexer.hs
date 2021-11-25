@@ -4,8 +4,8 @@ import Parser.Data ( Parser )
 import qualified Text.Megaparsec.Char.Lexer as L
 import Control.Monad ( void )
 import Text.Megaparsec.Char
-    ( alphaNumChar, char, letterChar, lowerChar, upperChar, spaceChar, digitChar )
-import Text.Megaparsec ( (<|>), between, many, some, MonadParsec(try) )
+    ( alphaNumChar, char, letterChar, lowerChar, upperChar, spaceChar, digitChar, punctuationChar )
+import Text.Megaparsec ( (<|>), between, many, some, MonadParsec(try), notFollowedBy )
 import Text.Printf ( printf )
 
 sc :: Parser ()
@@ -23,11 +23,14 @@ symbol = L.symbol sc
 roundBr :: Parser a -> Parser a
 roundBr = between (symbol "(") (symbol ")")
 
+curlyBr :: Parser a -> Parser a
+curlyBr = between (symbol "{") (symbol "}")
+
 identLetters :: Parser Char
 identLetters =
   char '_' <|> alphaNumChar <|> char '\''
 
-reserved = ["read", "write"]
+reserved = ["read", "write", "if", "else", "while"]
 
 notReserved :: (Monad m, MonadFail m) => [String] -> String -> m String
 notReserved reserved x | x `elem` reserved = fail $ printf "%s is reserved" (show x)
@@ -53,3 +56,6 @@ mult = symbol "*"
 
 assign :: Parser String
 assign = symbol ":="
+
+op :: String -> Parser String
+op n = (lexeme . try) (symbol n <* notFollowedBy punctuationChar)

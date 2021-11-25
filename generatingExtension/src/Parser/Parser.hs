@@ -2,7 +2,7 @@ module Parser.Parser (parser) where
 
 import Text.Megaparsec
 import Parser.Lexer
-    ( sc, symbol, roundBr, identifier, colon, number )
+    ( sc, symbol, roundBr, curlyBr, identifier, colon, number, op )
 import Parser.Data ( Parser )
 import L
 import Control.Monad.Combinators.Expr
@@ -34,11 +34,28 @@ parseBaseExpr =
   <|> parseExprBr
 
 table :: [[Operator Parser Expr]]
-table = [ [ binary  "*" (BinOp Mult) ]
-        , [ binary  "+" (BinOp Plus) ] ]
+table = [ [ infixR (symbol "^") (BinOp Pow) ]
+        , [ infixL (symbol "*") (BinOp Mult), infixL (symbol "/") (BinOp Div) ]
+        , [ infixL (symbol "+") (BinOp Plus), infixL (symbol "-") (BinOp Minus) ]
+        , [ infixN (op "<=") (BinOp Le)
+          , infixN (op "<") (BinOp Lt)
+          , infixN (op ">=") (BinOp Ge)
+          , infixN (op ">") (BinOp Gt)
+          , infixN (op "==") (BinOp Eq)
+          , infixN (op "/=") (BinOp Neq)
+          ]
+        , [ infixR (symbol "&&") (BinOp And) ]
+        , [ infixR (symbol "||") (BinOp Or) ]
+        ]
 
-binary :: String -> (a -> a -> a) -> Operator Parser a
-binary  name f = InfixL  (f <$ symbol name)
+infixL :: Parser String -> (a -> a -> a) -> Operator Parser a
+infixL op f = InfixL (f <$ op)
+
+infixR :: Parser String -> (a -> a -> a) -> Operator Parser a
+infixR op f = InfixR (f <$ op)
+
+infixN :: Parser String -> (a -> a -> a) -> Operator Parser a
+infixN op f = InfixN (f <$ op)
 
 parseExpr :: Parser Expr
 parseExpr = makeExprParser parseBaseExpr table <?> "expression"
@@ -64,9 +81,30 @@ parseWrite = do
 
 parseStmt :: Parser Stmt
 parseStmt =
-      parseRead
-  <|> parseWrite
-  <|> parseAssign
+      parseRead <* colon
+  <|> parseWrite <* colon
+  <|> parseAssign <* colon
+  <|> parseIf
+  <|> parseWhile
+
+parseIf :: Parser Stmt
+parseIf = do
+  symbol "if"
+  cond <- parseExprBr
+  thn <- curlyBr parseStmts
+  symbol "else"
+  els <- curlyBr parseStmts
+  return $ If cond thn els
+
+parseWhile :: Parser Stmt
+parseWhile = do
+  symbol "while"
+  cond <- parseExprBr
+  body <- curlyBr parseStmts
+  return $ While cond body
+
+parseStmts :: Parser L
+parseStmts = many parseStmt
 
 parseL :: Parser L
-parseL = sepBy1 parseStmt colon <* eof
+parseL = parseStmts <* eof
