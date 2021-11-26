@@ -39,6 +39,7 @@ library
   build-depends:
       base >=4.7 && <5
     , directory
+    , extra
     , filepath
     , megaparsec
     , optparse-applicative
@@ -58,6 +59,7 @@ executable exe
   build-depends:
       base >=4.7 && <5
     , directory
+    , extra
     , filepath
     , generatingExtension
     , megaparsec
@@ -79,6 +81,7 @@ test-suite generatingExtension-test
   build-depends:
       base >=4.7 && <5
     , directory
+    , extra
     , filepath
     , generatingExtension
     , megaparsec

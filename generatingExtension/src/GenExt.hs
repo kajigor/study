@@ -33,6 +33,7 @@ preamble = vsep
   , ""
   , "import Control.Monad.Trans.State"
   , "import Control.Monad.Trans.Class"
+  , "import Control.Monad ( when )"
   , ""
   , "intToBool :: Int -> Bool"
   , "intToBool x = x /= 0"
@@ -40,6 +41,12 @@ preamble = vsep
   , "boolToInt :: Bool -> Int"
   , "boolToInt True = 1"
   , "boolToInt False = 0"
+  , ""
+  , "-- This is from the extra package"
+  , "whileM :: Monad m => m Bool -> m ()"
+  , "whileM act = do"
+  , "  b <- act"
+  , "  when b $ whileM act"
   , ""
   ]
 
@@ -164,25 +171,41 @@ evalStmtGE (If c thn els) =
                       , "Nothing -> lift Nothing"
                       ]
            ]
--- does not terminate
--- evalStmtGE w@(While c body) =
---   let cComp = evalExprGE c in
---   hangOnce [ "do"
---            , "(state, _, _) <- get"
---            , "let cond = evalStateT (" <> cComp <> ") state"
---            , hangOnce [ "case cond of"
---                       , "Just condition -> "
---                       , hangOnce [ "when"
---                                  , "(intToBool cond)"
---                                  , hangOnce [ "(do"
---                                             , "(do "
---                                             , compileStmts body <> ")"
---                                             , evalStmtGE w <> ")"
---                                             ]
---                                  ]
---                       , "Nothing -> lift Nothing"
---                       ]
---            ]
+evalStmtGE (While c body) =
+  let cComp = evalExprGE c in
+  hangOnce [ "whileM $ do"
+           , "(state, _, _) <- get"
+           , "let cond = evalStateT (" <> cComp <> ") state"
+           , hangOnce [ "case cond of"
+                      , hangOnce [ "Just condition -> do"
+                                  , hangOnce [ "when"
+                                            , "(intToBool condition)"
+                                            , hangOnce [ "(do"
+                                                        , compileStmts body <> ")"
+                                                        ]
+                                            ]
+                                  , "return $ intToBool condition"
+                                  ]
+                      , "_ -> lift Nothing"]
+           ]
+
+  -- let cComp = evalExprGE c in
+  -- hangOnce [ "do"
+  --          , "(state, _, _) <- get"
+  --          , "let cond = evalStateT (" <> cComp <> ") state"
+  --          , hangOnce [ "case cond of"
+  --                     , "Just condition -> "
+  --                     , hangOnce [ "when"
+  --                                , "(intToBool cond)"
+  --                                , hangOnce [ "(do"
+  --                                           , "(do "
+  --                                           , compileStmts body <> ")"
+  --                                           , evalStmtGE w <> ")"
+  --                                           ]
+  --                                ]
+  --                     , "Nothing -> lift Nothing"
+  --                     ]
+  --          ]
 
 compileStmts stmts =
   (indentThrice $ map (parens . evalStmtGE) stmts)

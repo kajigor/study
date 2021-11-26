@@ -29,6 +29,7 @@ dependencies:
 - optparse-applicative
 - directory
 - filepath
+- extra
 
 library:
   source-dirs: src

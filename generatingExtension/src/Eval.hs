@@ -6,6 +6,7 @@ import Control.Monad.Trans.State
 import Control.Monad.Trans.Class
 import Control.Monad ( when )
 import Options.Applicative.Help (yellow)
+import Control.Monad.Extra
 
 evalOp :: Op -> (Int -> Int -> Int)
 evalOp Plus  = (+)
@@ -87,15 +88,22 @@ evalStmt (If c thn els) = do
       else mapM_ evalStmt els
     Nothing -> lift Nothing
 evalStmt w@(While c body) = do
-  (state, _, _) <- get
-  case evalStateT (evalExpr c) state of
-    Just cond ->
-      when
-        (intToBool cond)
-        (do
-          mapM_ evalStmt body
-          evalStmt (While c body))
-    Nothing -> lift Nothing
+  whileM $ do
+    (state, _, _) <- get
+    case evalStateT (evalExpr c) state of
+      Just cond -> do
+        when (intToBool cond) (mapM_ evalStmt body)
+        return $ intToBool cond
+      _ -> lift Nothing
+
+  -- case evalStateT (evalExpr c) state of
+  --   Just cond ->
+  --     when
+  --       (intToBool cond)
+  --       (do
+  --         mapM_ evalStmt body
+  --         evalStmt (While c body))
+  --   Nothing -> lift Nothing
 
 evalL :: L -> Input -> Maybe Output
 evalL program inputs =

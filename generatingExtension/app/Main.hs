@@ -135,7 +135,9 @@ runAction args = do
         Evaluator ->
           case evalL program (inputArgs action) of
             Nothing -> putStrLn "Failed to eval"
-            Just out -> writeFile (output action </> inputFileName <.> "out") (show out)
+            Just out -> do
+              print out
+              writeFile (output action </> inputFileName <.> "out") (show out)
         BTA ->
           undefined
         GeneratingExtension ->
