@@ -14,6 +14,7 @@ import System.FilePath ((</>), (<.>), dropExtension, takeFileName, takeDirectory
 import System.Directory (copyFile)
 import Eval (evalL)
 import GenExt (genExt)
+import System.TimeIt
 
 data Transformation = Parser
                     | Evaluator
@@ -23,10 +24,10 @@ data Transformation = Parser
 data Action = Action { transformation :: Transformation
                      , input :: FilePath
                      , output :: FilePath
-                     , inputArgs :: [Int]
+                     , inputArgs :: [Integer]
                      }
 
-data Args = Args Transformation FilePath (Maybe FilePath) (Maybe [Int])
+data Args = Args Transformation FilePath (Maybe FilePath) (Maybe [Integer])
 
 transform :: Args -> IO Action
 transform (Args transformation input output inputArgs) = do
@@ -74,7 +75,7 @@ inputParser = strOption
   <> help "Input file"
   )
 
-inputArgsParser :: Parser [Int]
+inputArgsParser :: Parser [Integer]
 inputArgsParser = argument auto (metavar "INPUT")
 
 outputParser :: Parser FilePath
@@ -133,12 +134,13 @@ runAction args = do
       case transformation action of
         Parser -> return ()
         Evaluator ->
-          case evalL program (inputArgs action) of
+          timeItNamed "evaluation" $
+          case evalL program [10000] of --  (inputArgs action) of
             Nothing -> putStrLn "Failed to eval"
             Just out -> do
               print out
-              writeFile (output action </> inputFileName <.> "out") (show out)
+              timeItNamed "writing filr" $  writeFile (output action </> inputFileName <.> "out") (show out)
         BTA ->
           undefined
         GeneratingExtension ->
-          genExt (inputArgs action) program (Just $ output action </> "Output.hs")
+          genExt [10000] program (Just $ output action </> "Output.hs") -- (inputArgs action) program (Just $ output action </> "Output.hs")

@@ -46,6 +46,7 @@ library
     , parser-combinators
     , prettyprinter
     , text
+    , timeit
     , transformers
   default-language: Haskell2010
 
@@ -67,6 +68,7 @@ executable exe
     , parser-combinators
     , prettyprinter
     , text
+    , timeit
     , transformers
   default-language: Haskell2010
 
@@ -89,5 +91,6 @@ test-suite generatingExtension-test
     , parser-combinators
     , prettyprinter
     , text
+    , timeit
     , transformers
   default-language: Haskell2010

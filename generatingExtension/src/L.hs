@@ -17,7 +17,7 @@ data Op = Plus
         | Or
         deriving Show
 
-data Expr = Lit Int
+data Expr = Lit Integer
           | Var Var
           | BinOp Op Expr Expr
           deriving Show
@@ -31,8 +31,8 @@ data Stmt = Assign Var Expr
 
 type L = [Stmt]
 
-type VarState = [(Var, Int)]
-type Input = [Int]
-type Output = [Int]
+type VarState = [(Var, Integer)]
+type Input = [Integer]
+type Output = [Integer]
 
 type ProgramState = (VarState, Input, Output)

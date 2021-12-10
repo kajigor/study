@@ -8,7 +8,7 @@ import Control.Monad ( when )
 import Options.Applicative.Help (yellow)
 import Control.Monad.Extra
 
-evalOp :: Op -> (Int -> Int -> Int)
+evalOp :: Op -> (Integer -> Integer -> Integer)
 evalOp Plus  = (+)
 evalOp Minus = (-)
 evalOp Mult  = (*)
@@ -23,21 +23,21 @@ evalOp Ge    = transformCompare (>=)
 evalOp And   = transform (&&)
 evalOp Or    = transform (||)
 
-transformCompare :: (Int -> Int -> Bool) -> Int -> Int -> Int
+transformCompare :: (Integer -> Integer -> Bool) -> Integer -> Integer -> Integer
 transformCompare f x y = boolToInt $ f x y
 
-transform :: (Bool -> Bool -> Bool) -> Int -> Int -> Int
+transform :: (Bool -> Bool -> Bool) -> Integer -> Integer -> Integer
 transform f x y = boolToInt $ intToBool x `f` intToBool y
 
-intToBool :: Int -> Bool
+intToBool :: Integer -> Bool
 intToBool x = x /= 0
 
-boolToInt :: Bool -> Int
+boolToInt :: Bool -> Integer
 boolToInt True = 1
 boolToInt False = 0
 
-evalExpr :: Expr -> StateT VarState Maybe Int
-evalExpr (Lit x) = return x
+evalExpr :: Expr -> StateT VarState Maybe Integer
+evalExpr (Lit x) = return (x :: Integer)
 evalExpr (Var v) = do
   state <- get
   case lookup v state of

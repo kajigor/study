@@ -42,7 +42,7 @@ identifier =
   where
     p = (:) <$> letterChar <*> many identLetters
 
-number :: Parser Int
+number :: Parser Integer
 number = read <$> L.lexeme sc (some digitChar)
 
 colon :: Parser String

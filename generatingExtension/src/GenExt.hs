@@ -35,10 +35,10 @@ preamble = vsep
   , "import Control.Monad.Trans.Class"
   , "import Control.Monad ( when )"
   , ""
-  , "intToBool :: Int -> Bool"
+  , "intToBool :: Integer -> Bool"
   , "intToBool x = x /= 0"
   , ""
-  , "boolToInt :: Bool -> Int"
+  , "boolToInt :: Bool -> Integer"
   , "boolToInt True = 1"
   , "boolToInt False = 0"
   , ""
@@ -189,24 +189,6 @@ evalStmtGE (While c body) =
                       , "_ -> lift Nothing"]
            ]
 
-  -- let cComp = evalExprGE c in
-  -- hangOnce [ "do"
-  --          , "(state, _, _) <- get"
-  --          , "let cond = evalStateT (" <> cComp <> ") state"
-  --          , hangOnce [ "case cond of"
-  --                     , "Just condition -> "
-  --                     , hangOnce [ "when"
-  --                                , "(intToBool cond)"
-  --                                , hangOnce [ "(do"
-  --                                           , "(do "
-  --                                           , compileStmts body <> ")"
-  --                                           , evalStmtGE w <> ")"
-  --                                           ]
-  --                                ]
-  --                     , "Nothing -> lift Nothing"
-  --                     ]
-  --          ]
-
 compileStmts stmts =
   (indentThrice $ map (parens . evalStmtGE) stmts)
 
@@ -216,7 +198,7 @@ evalLHelper program inputs =
   indentOnce [ "let compiled = do " <> line <> compiledStatements
              , "let res = execStateT compiled ([]," <+> pretty inputs <> ", [])"
              , "print $" <+> (hangOnce [ "case res of"
-                                       , "Just (_, _, output :: [Int]) -> Just output"
+                                       , "Just (_, _, output :: [Integer]) -> Just output"
                                        , "Nothing -> Nothing"
                                        ])
              ]

@@ -10,7 +10,7 @@ data Annotation = Static
                 | Dynamic
                 deriving (Eq, Show)
 
-data ExprA a = LitA Int a
+data ExprA a = LitA Integer a
              | VarA Var a
              | BinOpA Op (ExprA a) (ExprA a) a
              deriving Show
